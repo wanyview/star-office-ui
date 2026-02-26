@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Star Office - 像素办公室</title>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            background: #1a1a2e; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh;
+            font-family: 'Courier New', monospace;
+        }
+        #game-container {
+            border: 4px solid #ff6b35;
+            border-radius: 8px;
+            box-shadow: 0 0 30px rgba(255, 107, 53, 0.3);
+        }
+        #status-bar {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            border: 2px solid #ff6b35;
+            z-index: 100;
+        }
+        #status-bar .state { color: #ff6b35; font-weight: bold; }
+        #status-bar .detail { color: #aaa; margin-left: 10px; }
+    </style>
+</head>
+<body>
+    <div id="status-bar">
+        状态: <span class="state">idle</span><span class="detail">等待任务中...</span>
+    </div>
+    <div id="game-container"></div>
+
+    <script>
+    // 区域坐标配置
+    const ZONES = {
+        workdesk: { x: 400, y: 300, width: 200, height: 150 },  // 办公桌
+        breakroom: { x: 150, y: 450, width: 150, height: 100 }  // 休息区
+    };
+
+    // 状态对应的区域
+    const STATE_ZONES = {
+        idle: 'breakroom',
+        syncing: 'breakroom',
+        error: 'breakroom',
+        writing: 'workdesk',
+        researching: 'workdesk',
+        executing: 'workdesk'
+    };
+
+    // 状态气泡文本
+    const BUBBLES = {
+        idle: ["等待任务中...", "休息一下~", "等会儿吧"],
+        writing: ["正在写作...", "构思中...", "打字中..."],
+        researching: ["搜索中...", "查资料...", "分析中..."],
+        executing: ["执行中...", "处理中...", "干活中..."],
+        syncing: ["同步中...", "更新中...", "同步ing"],
+        error: ["出错了!", "有问题!", "稍等下..."]
+    };
+
+    class StarOffice extends Phaser.Scene {
+        constructor() {
+            super({ key: 'StarOffice' });
+            this.character = null;
+            this.currentState = 'idle';
+            this.targetX = 400;
+            this.targetY = 300;
+            this.isMoving = false;
+            this.blinkTimer = 0;
+            this.bubbleTimer = 0;
+            this.bubbleText = null;
+            this.detailText = null;
+        }
+
+        preload() {
+            // 生成像素风格背景
+            this.generateBackground();
+            
+            // 生成像素小人
+            this.generateCharacter();
+        }
+
+        generateBackground() {
+            // 创建画布生成背景
+            const canvas = document.createElement('canvas');
+            canvas.width = 800;
+            canvas.height = 600;
+            const ctx = canvas.getContext('2d');
+            
+            // 地板
+            ctx.fillStyle = '#2d2d44';
+            ctx.fillRect(0, 0, 800, 600);
+            
+            // 地板格子
+            ctx.strokeStyle = '#3d3d5c';
+            ctx.lineWidth = 2;
+            for (let i = 0; i < 20; i++) {
+                for (let j = 0; j < 15; j++) {
+                    ctx.strokeRect(i * 40, j * 40, 40, 40);
+                }
+            }
+            
+            // 办公桌区域
+            ctx.fillStyle = '#4a3728';
+            ctx.fillRect(300, 200, 200, 180);
+            ctx.fillStyle = '#5a4738';
+            ctx.fillRect(310, 210, 180, 160);
+            
+            // 电脑
+            ctx.fillStyle = '#222';
+            ctx.fillRect(360, 240, 80, 50);
+            ctx.fillStyle = '#4af';
+            ctx.fillRect(365, 245, 70, 40);
+            
+            // 休息区
+            ctx.fillStyle = '#2a4a3a';
+            ctx.fillRect(50, 400, 200, 150);
+            
+            // 沙发
+            ctx.fillStyle = '#6a4a3a';
+            ctx.fillRect(70, 450, 120, 60);
+            
+            // 植物
+            ctx.fillStyle = '#2a6a2a';
+            ctx.beginPath();
+            ctx.arc(650, 150, 40, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#4a2a2a';
+            ctx.fillRect(645, 180, 10, 30);
+
+            this.textures.addCanvas('office_bg', canvas);
+        }
+
+        generateCharacter() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 32;
+            canvas.height = 48;
+            const ctx = canvas.getContext('2d');
+            
+            // 身体
+            ctx.fillStyle = '#ff6b35';
+            ctx.fillRect(8, 16, 16, 20);
+            
+            // 头
+            ctx.fillStyle = '#ffdbac';
+            ctx.fillRect(6, 2, 20, 16);
+            
+            // 眼睛
+            ctx.fillStyle = '#222';
+            ctx.fillRect(10, 8, 4, 4);
+            ctx.fillRect(18, 8, 4, 4);
+            
+            // 嘴巴
+            ctx.fillStyle = '#d44';
+            ctx.fillRect(13, 14, 6, 2);
+            
+            // 腿
+            ctx.fillStyle = '#334';
+            ctx.fillRect(10, 36, 4, 12);
+            ctx.fillRect(18, 36, 4, 12);
+
+            this.textures.addCanvas('character', canvas);
+        }
+
+        create() {
+            // 添加背景
+            this.add.image(400, 300, 'office_bg');
+            
+            // 添加角色
+            this.character = this.add.image(400, 300, 'character');
+            this.character.setDepth(10);
+            
+            // 气泡
+            this.bubbleText = this.add.text(400, 220, '', {
+                fontSize: '14px',
+                color: '#fff',
+                backgroundColor: 'rgba(0,0,0,0.7)',
+                padding: { x: 10, y: 5 }
+            }).setOrigin(0.5);
+            this.bubbleText.setDepth(20);
+            this.bubbleText.setVisible(false);
+            
+            // 获取状态
+            this.fetchStatus();
+            
+            // 设置定时刷新
+            this.time.addEvent({
+                delay: 2000,
+                callback: this.fetchStatus,
+                callbackScope: this,
+                loop: true
+            });
+        }
+
+        fetchStatus() {
+            fetch('/status')
+                .then(r => r.json())
+                .then(data => {
+                    const newState = data.state || 'idle';
+                    const detail = data.detail || '';
+                    
+                    // 更新顶部状态栏
+                    document.querySelector('#status-bar .state').textContent = newState;
+                    document.querySelector('#status-bar .detail').textContent = detail;
+                    
+                    // 如果状态改变，更新目标位置
+                    if (newState !== this.currentState) {
+                        this.currentState = newState;
+                        const zone = ZONES[STATE_ZONES[newState]];
+                        this.targetX = zone.x + Phaser.Math.Between(-30, 30);
+                        this.targetY = zone.y + Phaser.Math.Between(-20, 20);
+                        this.isMoving = true;
+                        
+                        // 随机气泡
+                        this.showBubble(Phaser.Utils.Array.GetRandom(BUBBLES[newState]));
+                    }
+                })
+                .catch(console.error);
+        }
+
+        showBubble(text) {
+            this.bubbleText.setText(text);
+            this.bubbleText.setVisible(true);
+            this.bubbleText.setAlpha(1);
+            
+            // 3秒后消失
+            this.tweens.add({
+                targets: this.bubbleText,
+                alpha: 0,
+                delay: 2500,
+                duration: 500
+            });
+        }
+
+        update(time, delta) {
+            if (!this.character) return;
+            
+            // 移动角色
+            if (this.isMoving) {
+                const dx = this.targetX - this.character.x;
+                const dy = this.targetY - this.character.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                
+                if (dist > 2) {
+                    this.character.x += dx * 0.05;
+                    this.character.y += dy * 0.05;
+                    // 走路颠簸
+                    this.character.y += Math.sin(time * 0.01) * 0.5;
+                } else {
+                    this.isMoving = false;
+                    this.character.y = this.targetY;
+                }
+            } else {
+                // 休息区轻微动作
+                if (STATE_ZONES[this.currentState] === 'breakroom') {
+                    this.character.y = this.targetY + Math.sin(time * 0.002) * 2;
+                }
+            }
+            
+            // 眨眼
+            this.blinkTimer += delta;
+            if (this.blinkTimer > 3000) {
+                this.blinkTimer = 0;
+                // 眨眼动画
+                this.tweens.add({
+                    targets: this.character,
+                    scaleY: 0.1,
+                    duration: 100,
+                    yoyo: true
+                });
+            }
+        }
+    }
+
+    const config = {
+        type: Phaser.AUTO,
+        width: 800,
+        height: 600,
+        parent: 'game-container',
+        scene: StarOffice,
+        physics: { default: 'arcade' }
+    };
+
+    const game = new Phaser.Game(config);
+    </script>
+</body>
+</html>
