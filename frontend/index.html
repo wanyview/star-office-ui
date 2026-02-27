@@ -3,71 +3,217 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Star Office - 像素办公室</title>
+    <title>🦞 海辛龙虾工作间</title>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         body { 
-            background: #1a1a2e; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
             min-height: 100vh;
-            font-family: 'Courier New', monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            font-family: 'Noto Sans SC', sans-serif;
         }
-        #game-container {
-            border: 4px solid #ff6b35;
-            border-radius: 8px;
-            box-shadow: 0 0 30px rgba(255, 107, 53, 0.3);
-        }
-        #status-bar {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0,0,0,0.8);
+        
+        /* 标题 */
+        .title {
             color: #fff;
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-size: 14px;
-            border: 2px solid #ff6b35;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            text-shadow: 0 0 20px rgba(255, 107, 53, 0.8);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .title .lobster {
+            font-size: 32px;
+            animation: wave 2s ease-in-out infinite;
+        }
+        
+        @keyframes wave {
+            0%, 100% { transform: rotate(-5deg); }
+            50% { transform: rotate(5deg); }
+        }
+        
+        /* 状态卡片 */
+        .status-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 15px 30px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #4ade80;
+            box-shadow: 0 0 10px #4ade80;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .status-text {
+            color: #fff;
+            font-size: 16px;
+        }
+        
+        .status-text .state {
+            color: #ff6b35;
+            font-weight: 700;
+        }
+        
+        .status-text .detail {
+            color: rgba(255,255,255,0.7);
+            margin-left: 10px;
+        }
+        
+        /* 游戏容器 */
+        #game-container {
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 
+                0 0 0 4px rgba(255, 107, 53, 0.5),
+                0 0 40px rgba(255, 107, 53, 0.3),
+                0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+        
+        /* 截图按钮 */
+        #screenshot-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+            color: #fff;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4);
+            transition: all 0.3s ease;
             z-index: 100;
         }
-        #status-bar .state { color: #ff6b35; font-weight: bold; }
-        #status-bar .detail { color: #aaa; margin-left: 10px; }
+        
+        #screenshot-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 53, 0.6);
+        }
+        
+        #screenshot-btn:active {
+            transform: translateY(0);
+        }
+        
+        /* 底部信息 */
+        .footer {
+            margin-top: 20px;
+            color: rgba(255,255,255,0.5);
+            font-size: 14px;
+        }
+        
+        /* 加载动画 */
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0f0c29;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 0.5s;
+        }
+        
+        .loading.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .loading-text {
+            color: #ff6b35;
+            font-size: 24px;
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
     </style>
 </head>
 <body>
-    <div id="status-bar">
-        状态: <span class="state">idle</span><span class="detail">等待任务中...</span>
+    <div class="loading" id="loading">
+        <div class="loading-text">🦞 加载中...</div>
     </div>
+    
+    <div class="title">
+        <span class="lobster">🦞</span>
+        <span>海辛龙虾工作间</span>
+        <span class="lobster">🦞</span>
+    </div>
+    
+    <div class="status-card">
+        <div class="status-dot"></div>
+        <div class="status-text">
+            状态: <span class="state" id="state-text">idle</span>
+            <span class="detail" id="detail-text">等待任务中...</span>
+        </div>
+    </div>
+    
     <div id="game-container"></div>
+    
+    <button id="screenshot-btn">📸 截图</button>
+    
+    <div class="footer">
+        海辛龙虾工作室 © 2026
+    </div>
 
     <script>
-    // 区域坐标配置
+    // 区域配置
     const ZONES = {
-        workdesk: { x: 400, y: 300, width: 200, height: 150 },  // 办公桌
-        breakroom: { x: 150, y: 450, width: 150, height: 100 }  // 休息区
+        workdesk: { x: 500, y: 280, width: 180, height: 140 },
+        breakroom: { x: 150, y: 380, width: 180, height: 140 },
+        meeting: { x: 500, y: 420, width: 180, height: 140 },
+        entrance: { x: 400, y: 500, width: 100, height: 60 }
     };
 
-    // 状态对应的区域
     const STATE_ZONES = {
         idle: 'breakroom',
         syncing: 'breakroom',
         error: 'breakroom',
         writing: 'workdesk',
         researching: 'workdesk',
-        executing: 'workdesk'
+        executing: 'workdesk',
+        meeting: 'meeting'
     };
 
-    // 状态气泡文本
     const BUBBLES = {
-        idle: ["等待任务中...", "休息一下~", "等会儿吧"],
-        writing: ["正在写作...", "构思中...", "打字中..."],
-        researching: ["搜索中...", "查资料...", "分析中..."],
-        executing: ["执行中...", "处理中...", "干活中..."],
-        syncing: ["同步中...", "更新中...", "同步ing"],
-        error: ["出错了!", "有问题!", "稍等下..."]
+        idle: ["等待任务中...", "休息一下~", "等会儿吧", "放松时刻"],
+        writing: ["正在写作...", "构思中...", "打字中...", "创作ing"],
+        researching: ["搜索中...", "查资料...", "分析中...", "学习中..."],
+        executing: ["执行中...", "处理中...", "干活中...", "忙碌ing"],
+        syncing: ["同步中...", "更新中...", "同步ing", "稍等~"],
+        error: ["出错了!", "有问题!", "稍等下...", "处理中..."],
+        meeting: ["会议中...", "讨论中...", "沟通ing"]
     };
 
     class StarOffice extends Phaser.Scene {
@@ -75,133 +221,298 @@
             super({ key: 'StarOffice' });
             this.character = null;
             this.currentState = 'idle';
-            this.targetX = 400;
-            this.targetY = 300;
+            this.targetX = 150;
+            this.targetY = 380;
             this.isMoving = false;
-            this.blinkTimer = 0;
-            this.bubbleTimer = 0;
             this.bubbleText = null;
-            this.detailText = null;
+            this.particles = [];
         }
 
         preload() {
-            // 生成像素风格背景
             this.generateBackground();
-            
-            // 生成像素小人
             this.generateCharacter();
+            this.generateDecorations();
         }
 
         generateBackground() {
-            // 创建画布生成背景
             const canvas = document.createElement('canvas');
             canvas.width = 800;
             canvas.height = 600;
             const ctx = canvas.getContext('2d');
             
-            // 地板
-            ctx.fillStyle = '#2d2d44';
+            // 渐变背景
+            const gradient = ctx.createLinearGradient(0, 0, 0, 600);
+            gradient.addColorStop(0, '#1a1a3e');
+            gradient.addColorStop(1, '#2d2d5a');
+            ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, 800, 600);
             
-            // 地板格子
-            ctx.strokeStyle = '#3d3d5c';
-            ctx.lineWidth = 2;
+            // 地板
+            ctx.fillStyle = '#252545';
+            ctx.fillRect(0, 500, 800, 100);
+            
+            // 地板条纹
+            ctx.fillStyle = '#2a2a50';
+            for (let i = 0; i < 10; i++) {
+                ctx.fillRect(i * 80 + 20, 500, 40, 100);
+            }
+            
+            // 墙壁装饰
+            ctx.strokeStyle = 'rgba(255, 107, 53, 0.3)';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(50, 50, 700, 440);
+            
+            // 窗户
+            ctx.fillStyle = '#1a3a5a';
+            ctx.fillRect(100, 100, 150, 120);
+            ctx.fillStyle = '#4a8ac4';
+            ctx.fillRect(110, 110, 60, 45);
+            ctx.fillRect(180, 110, 60, 45);
+            ctx.fillRect(110, 165, 60, 45);
+            ctx.fillRect(180, 165, 60, 45);
+            
+            // 月亮
+            ctx.fillStyle = '#ffffcc';
+            ctx.beginPath();
+            ctx.arc(650, 100, 30, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 星星
+            ctx.fillStyle = '#ffffff';
             for (let i = 0; i < 20; i++) {
-                for (let j = 0; j < 15; j++) {
-                    ctx.strokeRect(i * 40, j * 40, 40, 40);
-                }
+                const x = Math.random() * 700 + 50;
+                const y = Math.random() * 200 + 50;
+                const size = Math.random() * 2 + 1;
+                ctx.beginPath();
+                ctx.arc(x, y, size, 0, Math.PI * 2);
+                ctx.fill();
             }
             
             // 办公桌区域
-            ctx.fillStyle = '#4a3728';
-            ctx.fillRect(300, 200, 200, 180);
-            ctx.fillStyle = '#5a4738';
-            ctx.fillRect(310, 210, 180, 160);
+            this.drawDesk(ctx, 420, 200, 220, 180);
+            
+            // 休息区
+            this.drawSofa(ctx, 80, 350, 200, 140);
+            
+            // 会议区
+            this.drawMeetingTable(ctx, 450, 380, 200, 120);
+            
+            // 植物
+            this.drawPlant(ctx, 700, 150);
+            this.drawPlant(ctx, 50, 300);
+            
+            // 书架
+            this.drawBookshelf(ctx, 680, 280);
+
+            this.textures.addCanvas('office_bg', canvas);
+        }
+        
+        drawDesk(ctx, x, y, w, h) {
+            // 桌子
+            ctx.fillStyle = '#5a3d2b';
+            ctx.fillRect(x, y + h - 30, w, 30);
+            ctx.fillStyle = '#7a5d4b';
+            ctx.fillRect(x + 10, y + 10, w - 20, h - 40);
             
             // 电脑
             ctx.fillStyle = '#222';
-            ctx.fillRect(360, 240, 80, 50);
-            ctx.fillStyle = '#4af';
-            ctx.fillRect(365, 245, 70, 40);
+            ctx.fillRect(x + 50, y + 40, 100, 70);
+            ctx.fillStyle = '#5af';
+            ctx.fillRect(x + 55, y + 45, 90, 55);
             
-            // 休息区
-            ctx.fillStyle = '#2a4a3a';
-            ctx.fillRect(50, 400, 200, 150);
+            // 键盘
+            ctx.fillStyle = '#333';
+            ctx.fillRect(x + 60, y + 115, 80, 20);
             
-            // 沙发
-            ctx.fillStyle = '#6a4a3a';
-            ctx.fillRect(70, 450, 120, 60);
-            
-            // 植物
-            ctx.fillStyle = '#2a6a2a';
+            // 台灯
+            ctx.fillStyle = '#444';
+            ctx.fillRect(x + w - 50, y + 60, 10, 40);
+            ctx.fillStyle = '#ffdd44';
             ctx.beginPath();
-            ctx.arc(650, 150, 40, 0, Math.PI * 2);
+            ctx.arc(x + w - 45, y + 55, 15, 0, Math.PI);
             ctx.fill();
-            ctx.fillStyle = '#4a2a2a';
-            ctx.fillRect(645, 180, 10, 30);
-
-            this.textures.addCanvas('office_bg', canvas);
+        }
+        
+        drawSofa(ctx, x, y, w, h) {
+            // 沙发底座
+            ctx.fillStyle = '#4a6a8a';
+            ctx.fillRect(x, y + 40, w, h - 40);
+            
+            // 靠背
+            ctx.fillStyle = '#5a7a9a';
+            ctx.fillRect(x, y, w, 50);
+            
+            // 扶手
+            ctx.fillStyle = '#3a5a7a';
+            ctx.fillRect(x - 10, y + 20, 20, h - 30);
+            ctx.fillRect(x + w - 10, y + 20, 20, h - 30);
+            
+            // 枕头
+            ctx.fillStyle = '#ff6b35';
+            ctx.fillRect(x + 20, y + 50, 50, 35);
+            ctx.fillRect(x + w - 70, y + 50, 50, 35);
+            
+            // 茶几
+            ctx.fillStyle = '#3d3d3d';
+            ctx.fillRect(x + 70, y + h + 10, 60, 25);
+        }
+        
+        drawMeetingTable(ctx, x, y, w, h) {
+            // 会议桌
+            ctx.fillStyle = '#5a4d3b';
+            ctx.fillRect(x, y + 30, w, h - 30);
+            
+            // 椅子
+            for (let i = 0; i < 4; i++) {
+                ctx.fillStyle = '#3a5a7a';
+                ctx.fillRect(x + 20 + i * 45, y + h - 20, 30, 40);
+            }
+        }
+        
+        drawPlant(ctx, x, y) {
+            // 花盆
+            ctx.fillStyle = '#8b4513';
+            ctx.fillRect(x - 15, y + 40, 30, 30);
+            
+            // 叶子
+            ctx.fillStyle = '#2a8a2a';
+            for (let i = 0; i < 5; i++) {
+                ctx.beginPath();
+                ctx.ellipse(x, y + 20 - i * 10, 15, 25, Math.PI / 4 * (i - 2), 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        
+        drawBookshelf(ctx, x, y) {
+            ctx.fillStyle = '#5a3d2b';
+            ctx.fillRect(x, y, 60, 150);
+            
+            // 书籍
+            const colors = ['#ff6b35', '#4a8ac4', '#2a8a2a', '#8a4a8a', '#c44a4a'];
+            for (let i = 0; i < 4; i++) {
+                ctx.fillStyle = colors[i];
+                ctx.fillRect(x + 5, y + 10 + i * 35, 50, 30);
+            }
         }
 
         generateCharacter() {
             const canvas = document.createElement('canvas');
-            canvas.width = 32;
-            canvas.height = 48;
+            canvas.width = 40;
+            canvas.height = 56;
             const ctx = canvas.getContext('2d');
             
-            // 身体
+            // 身体 - 橙色衣服
             ctx.fillStyle = '#ff6b35';
-            ctx.fillRect(8, 16, 16, 20);
+            ctx.fillRect(10, 20, 20, 24);
             
             // 头
             ctx.fillStyle = '#ffdbac';
-            ctx.fillRect(6, 2, 20, 16);
+            ctx.beginPath();
+            ctx.arc(20, 12, 12, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 头发
+            ctx.fillStyle = '#4a3520';
+            ctx.beginPath();
+            ctx.arc(20, 8, 10, Math.PI, 0);
+            ctx.fill();
             
             // 眼睛
             ctx.fillStyle = '#222';
-            ctx.fillRect(10, 8, 4, 4);
-            ctx.fillRect(18, 8, 4, 4);
+            ctx.fillRect(14, 10, 4, 4);
+            ctx.fillRect(22, 10, 4, 4);
             
-            // 嘴巴
-            ctx.fillStyle = '#d44';
-            ctx.fillRect(13, 14, 6, 2);
+            // 腮红
+            ctx.fillStyle = '#ffaaaa';
+            ctx.beginPath();
+            ctx.arc(12, 15, 3, 0, Math.PI * 2);
+            ctx.arc(28, 15, 3, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 微笑
+            ctx.strokeStyle = '#d44';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(20, 14, 5, 0.2, Math.PI - 0.2);
+            ctx.stroke();
             
             // 腿
             ctx.fillStyle = '#334';
-            ctx.fillRect(10, 36, 4, 12);
-            ctx.fillRect(18, 36, 4, 12);
+            ctx.fillRect(13, 44, 5, 12);
+            ctx.fillRect(22, 44, 5, 12);
+            
+            // 鞋子
+            ctx.fillStyle = '#222';
+            ctx.fillRect(11, 52, 8, 4);
+            ctx.fillRect(21, 52, 8, 4);
 
             this.textures.addCanvas('character', canvas);
         }
+        
+        generateDecorations() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 20;
+            canvas.height = 20;
+            const ctx = canvas.getContext('2d');
+            
+            // 星星粒子
+            ctx.fillStyle = '#ffffcc';
+            ctx.beginPath();
+            ctx.arc(10, 10, 5, 0, Math.PI * 2);
+            ctx.fill();
+            
+            this.textures.addCanvas('star', canvas);
+        }
 
         create() {
-            // 添加背景
             this.add.image(400, 300, 'office_bg');
             
-            // 添加角色
-            this.character = this.add.image(400, 300, 'character');
+            // 添加一些装饰星星
+            for (let i = 0; i < 10; i++) {
+                const star = this.add.image(
+                    Phaser.Math.Between(100, 700),
+                    Phaser.Math.Between(80, 150),
+                    'star'
+                );
+                star.setAlpha(0.5);
+                star.setScale(0.5);
+                this.tweens.add({
+                    targets: star,
+                    alpha: 0.2,
+                    duration: 1000 + i * 200,
+                    yoyo: true,
+                    repeat: -1
+                });
+            }
+            
+            this.character = this.add.image(150, 380, 'character');
             this.character.setDepth(10);
+            this.character.setScale(1.2);
             
             // 气泡
-            this.bubbleText = this.add.text(400, 220, '', {
-                fontSize: '14px',
+            this.bubbleText = this.add.text(150, 310, '', {
+                fontSize: '16px',
                 color: '#fff',
-                backgroundColor: 'rgba(0,0,0,0.7)',
-                padding: { x: 10, y: 5 }
+                backgroundColor: 'rgba(0,0,0,0.8)',
+                padding: { x: 12, y: 8 },
+                borderRadius: 10
             }).setOrigin(0.5);
             this.bubbleText.setDepth(20);
             this.bubbleText.setVisible(false);
             
-            // 获取状态
             this.fetchStatus();
             
-            // 设置定时刷新
             this.time.addEvent({
                 delay: 2000,
                 callback: this.fetchStatus,
                 callbackScope: this,
                 loop: true
             });
+            
+            // 隐藏加载
+            setTimeout(() => {
+                document.getElementById('loading').classList.add('hidden');
+            }, 500);
         }
 
         fetchStatus() {
@@ -211,35 +522,35 @@
                     const newState = data.state || 'idle';
                     const detail = data.detail || '';
                     
-                    // 更新顶部状态栏
-                    document.querySelector('#status-bar .state').textContent = newState;
-                    document.querySelector('#status-bar .detail').textContent = detail;
+                    document.getElementById('state-text').textContent = newState;
+                    document.getElementById('detail-text').textContent = detail;
                     
-                    // 如果状态改变，更新目标位置
                     if (newState !== this.currentState) {
                         this.currentState = newState;
-                        const zone = ZONES[STATE_ZONES[newState]];
+                        const zone = ZONES[STATE_ZONES[newState] || 'breakroom'];
                         this.targetX = zone.x + Phaser.Math.Between(-30, 30);
                         this.targetY = zone.y + Phaser.Math.Between(-20, 20);
                         this.isMoving = true;
                         
-                        // 随机气泡
-                        this.showBubble(Phaser.Utils.Array.GetRandom(BUBBLES[newState]));
+                        this.showBubble(Phaser.Utils.Array.GetRandom(BUBBLES[newState] || BUBBLES.idle));
                     }
                 })
-                .catch(console.error);
+                .catch(() => {
+                    document.getElementById('state-text').textContent = 'error';
+                    document.getElementById('detail-text').textContent = '连接失败';
+                });
         }
 
         showBubble(text) {
             this.bubbleText.setText(text);
             this.bubbleText.setVisible(true);
             this.bubbleText.setAlpha(1);
+            this.bubbleText.y = this.character.y - 70;
             
-            // 3秒后消失
             this.tweens.add({
                 targets: this.bubbleText,
                 alpha: 0,
-                delay: 2500,
+                delay: 3000,
                 duration: 500
             });
         }
@@ -247,39 +558,22 @@
         update(time, delta) {
             if (!this.character) return;
             
-            // 移动角色
             if (this.isMoving) {
                 const dx = this.targetX - this.character.x;
                 const dy = this.targetY - this.character.y;
                 const dist = Math.sqrt(dx * dx + dy * dy);
                 
-                if (dist > 2) {
-                    this.character.x += dx * 0.05;
-                    this.character.y += dy * 0.05;
-                    // 走路颠簸
-                    this.character.y += Math.sin(time * 0.01) * 0.5;
+                if (dist > 3) {
+                    this.character.x += dx * 0.04;
+                    this.character.y += dy * 0.04;
+                    this.character.y += Math.sin(time * 0.015) * 0.8;
                 } else {
                     this.isMoving = false;
                     this.character.y = this.targetY;
                 }
             } else {
-                // 休息区轻微动作
-                if (STATE_ZONES[this.currentState] === 'breakroom') {
-                    this.character.y = this.targetY + Math.sin(time * 0.002) * 2;
-                }
-            }
-            
-            // 眨眼
-            this.blinkTimer += delta;
-            if (this.blinkTimer > 3000) {
-                this.blinkTimer = 0;
-                // 眨眼动画
-                this.tweens.add({
-                    targets: this.character,
-                    scaleY: 0.1,
-                    duration: 100,
-                    yoyo: true
-                });
+                // 轻微呼吸动画
+                this.character.y = this.targetY + Math.sin(time * 0.003) * 2;
             }
         }
     }
@@ -290,10 +584,41 @@
         height: 600,
         parent: 'game-container',
         scene: StarOffice,
-        physics: { default: 'arcade' }
+        backgroundColor: '#1a1a3e'
     };
 
     const game = new Phaser.Game(config);
+
+    // 截图功能
+    document.getElementById('screenshot-btn').addEventListener('click', function() {
+        const btn = this;
+        btn.textContent = '📸 保存中...';
+        
+        html2canvas(document.querySelector('#game-container')).then(canvas => {
+            const image = canvas.toDataURL('image/png');
+            
+            fetch('/screenshot', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({image: image})
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    btn.textContent = '✅ 已保存!';
+                    setTimeout(() => btn.textContent = '📸 截图', 2000);
+                    alert('截图已保存! 文件: ' + data.filename);
+                } else {
+                    btn.textContent = '❌ 失败';
+                    setTimeout(() => btn.textContent = '📸 截图', 2000);
+                }
+            })
+            .catch(() => {
+                btn.textContent = '❌ 错误';
+                setTimeout(() => btn.textContent = '📸 截图', 2000);
+            });
+        });
+    });
     </script>
 </body>
 </html>
