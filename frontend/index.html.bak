@@ -188,32 +188,32 @@
     </div>
 
     <script>
-    // 区域配置 - 咖啡店多隔断布局
+    // 区域配置
     const ZONES = {
-        bar: { x: 100, y: 250, width: 180, height: 150 },       // 吧台 - 制作咖啡
-        gallery: { x: 400, y: 100, width: 200, height: 80 },     // 展示区 - 墙上看图
-        seating: { x: 550, y: 350, width: 200, height: 150 },    // 客座区 - 休息/聊天
-        storage: { x: 720, y: 420, width: 60, height: 60 }       // 仓库角
+        workdesk: { x: 500, y: 280, width: 180, height: 140 },
+        breakroom: { x: 150, y: 380, width: 180, height: 140 },
+        meeting: { x: 500, y: 420, width: 180, height: 140 },
+        entrance: { x: 400, y: 500, width: 100, height: 60 }
     };
 
     const STATE_ZONES = {
-        idle: 'seating',
-        syncing: 'gallery',
-        error: 'storage',
-        writing: 'bar',
-        researching: 'bar',
-        executing: 'bar',
-        meeting: 'seating'
+        idle: 'breakroom',
+        syncing: 'breakroom',
+        error: 'breakroom',
+        writing: 'workdesk',
+        researching: 'workdesk',
+        executing: 'workdesk',
+        meeting: 'meeting'
     };
 
     const BUBBLES = {
-        idle: ["休息中...", "喝杯咖啡~", "放松时刻", "等待客人..."],
-        writing: ["制作中...", "萃取中...", "拉花中...", "ING"],
-        researching: ["研究中...", "学习中...", "思考中...", "ING"],
-        executing: ["制作中...", "冲泡中...", "萃取中...", "忙碌ing"],
+        idle: ["等待任务中...", "休息一下~", "等会儿吧", "放松时刻"],
+        writing: ["正在写作...", "构思中...", "打字中...", "创作ing"],
+        researching: ["搜索中...", "查资料...", "分析中...", "学习中..."],
+        executing: ["执行中...", "处理中...", "干活中...", "忙碌ing"],
         syncing: ["同步中...", "更新中...", "同步ing", "稍等~"],
-        error: ["机器故障!", "有问题!", "稍等下...", "处理中..."],
-        meeting: ["待客中...", "洽谈ing", "聊天中..."]
+        error: ["出错了!", "有问题!", "稍等下...", "处理中..."],
+        meeting: ["会议中...", "讨论中...", "沟通ing"]
     };
 
     class StarOffice extends Phaser.Scene {
@@ -221,8 +221,8 @@
             super({ key: 'StarOffice' });
             this.character = null;
             this.currentState = 'idle';
-            this.targetX = 550;
-            this.targetY = 350;
+            this.targetX = 150;
+            this.targetY = 380;
             this.isMoving = false;
             this.bubbleText = null;
             this.particles = [];
@@ -240,241 +240,97 @@
             canvas.height = 600;
             const ctx = canvas.getContext('2d');
             
-            // ===== 咖啡店整体墙壁 =====
+            // 渐变背景
             const gradient = ctx.createLinearGradient(0, 0, 0, 600);
-            gradient.addColorStop(0, '#4a3020');
-            gradient.addColorStop(1, '#6a4a30');
+            gradient.addColorStop(0, '#1a1a3e');
+            gradient.addColorStop(1, '#2d2d5a');
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, 800, 600);
             
-            // ===== 地面 =====
-            ctx.fillStyle = '#3a2515';
+            // 地板
+            ctx.fillStyle = '#252545';
             ctx.fillRect(0, 500, 800, 100);
-            // 木纹地板
-            ctx.fillStyle = '#4a3525';
+            
+            // 地板条纹
+            ctx.fillStyle = '#2a2a50';
             for (let i = 0; i < 10; i++) {
-                ctx.fillRect(i * 80 + 5, 500, 70, 100);
+                ctx.fillRect(i * 80 + 20, 500, 40, 100);
             }
             
-            // ===== 隔断墙分隔区域 =====
-            // 中间隔断墙
-            ctx.fillStyle = '#5a3d2b';
-            ctx.fillRect(380, 60, 15, 440);
-            ctx.fillStyle = '#7a5d4b';
-            ctx.fillRect(380, 60, 5, 440);
-            
-            // ===== 左区：吧台区 =====
-            // 吧台背景
-            ctx.fillStyle = '#2a1810';
-            ctx.fillRect(30, 140, 340, 350);
-            // 吧台台面
-            ctx.fillStyle = '#5a3d2b';
-            ctx.fillRect(20, 280, 360, 30);
-            // 吧台装饰灯
-            ctx.fillStyle = '#ffaa44';
-            for (let i = 0; i < 4; i++) {
-                ctx.beginPath();
-                ctx.arc(60 + i * 80, 160, 12, 0, Math.PI * 2);
-                ctx.fill();
-            }
-            
-            // ===== 右区：客座区 =====
-            // 客区背景
-            ctx.fillStyle = '#2d1f15';
-            ctx.fillRect(410, 140, 360, 350);
-            // 客区地板
-            ctx.fillStyle = '#3a2515';
-            ctx.fillRect(410, 400, 360, 90);
-            
-            // ===== 上方：展示区（挂三张图）=====
-            // 展示区背景
-            ctx.fillStyle = '#1a0f0a';
-            ctx.fillRect(30, 60, 740, 70);
-            ctx.strokeStyle = '#8b5a2b';
+            // 墙壁装饰
+            ctx.strokeStyle = 'rgba(255, 107, 53, 0.3)';
             ctx.lineWidth = 3;
-            ctx.strokeRect(30, 55, 740, 80);
+            ctx.strokeRect(50, 50, 700, 440);
             
-            // 图片框1 - 碰撞实验
-            ctx.fillStyle = '#2a2a2a';
-            ctx.fillRect(50, 65, 200, 60);
-            ctx.strokeStyle = '#c9a227';
-            ctx.lineWidth = 2;
-            ctx.strokeRect(50, 65, 200, 60);
-            ctx.fillStyle = '#888';
-            ctx.font = '10px Noto Sans SC';
-            ctx.fillText('🧪 碰撞实验', 60, 100);
+            // 窗户
+            ctx.fillStyle = '#1a3a5a';
+            ctx.fillRect(100, 100, 150, 120);
+            ctx.fillStyle = '#4a8ac4';
+            ctx.fillRect(110, 110, 60, 45);
+            ctx.fillRect(180, 110, 60, 45);
+            ctx.fillRect(110, 165, 60, 45);
+            ctx.fillRect(180, 165, 60, 45);
             
-            // 图片框2 - 咖啡店
-            ctx.fillStyle = '#2a2a2a';
-            ctx.fillRect(280, 65, 200, 60);
-            ctx.strokeStyle = '#c9a227';
-            ctx.strokeRect(280, 65, 200, 60);
-            ctx.fillText('☕ 咖啡店', 290, 100);
+            // 月亮
+            ctx.fillStyle = '#ffffcc';
+            ctx.beginPath();
+            ctx.arc(650, 100, 30, 0, Math.PI * 2);
+            ctx.fill();
             
-            // 图片框3 - Dashboard
-            ctx.fillStyle = '#2a2a2a';
-            ctx.fillRect(510, 65, 200, 60);
-            ctx.strokeStyle = '#c9a227';
-            ctx.strokeRect(510, 65, 200, 60);
-            ctx.fillText('📊 实验室', 520, 100);
-            
-            // ===== 菜单黑板（吧台区）=====
-            ctx.fillStyle = '#1a1a1a';
-            ctx.fillRect(50, 310, 140, 100);
-            ctx.strokeStyle = '#8b4513';
-            ctx.lineWidth = 4;
-            ctx.strokeRect(50, 310, 140, 100);
+            // 星星
             ctx.fillStyle = '#ffffff';
-            ctx.font = '10px Noto Sans SC';
-            ctx.fillText('☕ 今日特供', 60, 330);
-            ctx.font = '8px Noto Sans SC';
-            ctx.fillStyle = '#cccccc';
-            ctx.fillText('爱迪生铁 ¥32', 60, 350);
-            ctx.fillText('卡布勤森 ¥28', 60, 365);
-            ctx.fillText('澳白勇士 ¥30', 60, 380);
-            ctx.fillText('诚C美式 ¥22', 60, 395);
-            
-            // ===== 吧台设备 =====
-            // 咖啡机
-            this.drawCoffeeMachine(ctx, 60, 170, 100, 80);
-            // 甜品柜
-            this.drawDisplayCase(ctx, 180, 200, 100, 60);
-            
-            // ===== 客座区家具 =====
-            // 咖啡桌1
-            this.drawCoffeeTable(ctx, 450, 350);
-            // 咖啡桌2  
-            this.drawCoffeeTable(ctx, 600, 350);
-            // 沙发
-            ctx.fillStyle = '#5a4a3a';
-            ctx.fillRect(420, 280, 340, 50);
-            ctx.fillStyle = '#7a6a5a';
-            ctx.fillRect(420, 265, 340, 20);
-            
-            // ===== 仓库角 =====
-            ctx.fillStyle = '#3a2a1a';
-            ctx.fillRect(700, 400, 70, 80);
-            // 咖啡豆袋
-            ctx.fillStyle = '#8b6914';
-            ctx.fillRect(710, 370, 25, 35);
-            ctx.fillStyle = '#6b4934';
-            ctx.fillRect(740, 375, 20, 30);
-            
-            // ===== 植物装饰 =====
-            this.drawPlant(ctx, 30, 450);
-            this.drawPlant(ctx, 750, 450);
-            
-            // ===== 门口 =====
-            ctx.fillStyle = '#4a3020';
-            ctx.fillRect(720, 500, 60, 80);
-
-            this.textures.addCanvas('office_bg', canvas);
-        }
-            
-            // 客区
-            this.drawCoffeeArea(ctx, 400, 300, 350, 180);
-            this.drawCoffeeBags(ctx, 50, 420);
-            this.drawWallDecor(ctx, 400, 100);
-            this.drawPlant(ctx, 720, 420);
-
-            this.textures.addCanvas('office_bg', canvas);
-        }
-        
-        drawCounter(ctx, x, y, w, h) {
-            ctx.fillStyle = '#5a3d2b';
-            ctx.fillRect(x, y + 40, w, h - 40);
-            ctx.fillStyle = '#7a5d4b';
-            ctx.fillRect(x + 5, y + 5, w - 10, 40);
-            ctx.fillStyle = '#3a2515';
-            ctx.fillRect(x, y + h - 20, w, 20);
-        }
-        
-        drawCoffeeMachine(ctx, x, y, w, h) {
-            ctx.fillStyle = '#c0c0c0';
-            ctx.fillRect(x + 10, y + 30, w - 20, h - 30);
-            ctx.fillStyle = '#a0a0a0';
-            ctx.fillRect(x, y, w, 30);
-            ctx.fillStyle = '#333';
-            ctx.fillRect(x + 30, y + 50, 20, 40);
-            ctx.fillStyle = '#fff';
-            ctx.fillRect(x + 25, y + 90, 30, 25);
-            ctx.fillStyle = 'rgba(255,255,255,0.3)';
-            for (let i = 0; i < 3; i++) {
+            for (let i = 0; i < 20; i++) {
+                const x = Math.random() * 700 + 50;
+                const y = Math.random() * 200 + 50;
+                const size = Math.random() * 2 + 1;
                 ctx.beginPath();
-                ctx.arc(x + 40 + i * 8, y + 20 - i * 5, 5, 0, Math.PI * 2);
+                ctx.arc(x, y, size, 0, Math.PI * 2);
                 ctx.fill();
             }
+            
+            // 办公桌区域
+            this.drawDesk(ctx, 420, 200, 220, 180);
+            
+            // 休息区
+            this.drawSofa(ctx, 80, 350, 200, 140);
+            
+            // 会议区
+            this.drawMeetingTable(ctx, 450, 380, 200, 120);
+            
+            // 植物
+            this.drawPlant(ctx, 700, 150);
+            this.drawPlant(ctx, 50, 300);
+            
+            // 书架
+            this.drawBookshelf(ctx, 680, 280);
+
+            this.textures.addCanvas('office_bg', canvas);
         }
         
-        drawDisplayCase(ctx, x, y, w, h) {
-            ctx.fillStyle = 'rgba(200, 230, 255, 0.3)';
-            ctx.fillRect(x, y, w, h);
-            ctx.strokeStyle = '#c0c0c0';
-            ctx.lineWidth = 3;
-            ctx.strokeRect(x, y, w, h);
-            ctx.fillStyle = '#d4a574';
-            ctx.beginPath();
-            ctx.arc(x + 30, y + 40, 15, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = '#8b4513';
-            ctx.beginPath();
-            ctx.arc(x + 30, y + 40, 8, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = '#ffd700';
-            ctx.beginPath();
-            ctx.arc(x + 70, y + 35, 12, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = '#8b4513';
-            ctx.fillRect(x + 90, y + 30, 20, 15);
-        }
-        
-        drawCoffeeArea(ctx, x, y, w, h) {
-            ctx.fillStyle = '#3a2a1a';
-            ctx.fillRect(x, y + 60, w, h - 60);
-            this.drawCoffeeTable(ctx, x + 30, y + 80);
-            this.drawCoffeeTable(ctx, x + 180, y + 80);
-            ctx.fillStyle = '#5a4a3a';
-            ctx.fillRect(x, y + 20, w, 40);
-            ctx.fillStyle = '#7a6a5a';
-            ctx.fillRect(x, y, w, 25);
-        }
-        
-        drawCoffeeTable(ctx, x, y) {
+        drawDesk(ctx, x, y, w, h) {
+            // 桌子
             ctx.fillStyle = '#5a3d2b';
+            ctx.fillRect(x, y + h - 30, w, 30);
+            ctx.fillStyle = '#7a5d4b';
+            ctx.fillRect(x + 10, y + 10, w - 20, h - 40);
+            
+            // 电脑
+            ctx.fillStyle = '#222';
+            ctx.fillRect(x + 50, y + 40, 100, 70);
+            ctx.fillStyle = '#5af';
+            ctx.fillRect(x + 55, y + 45, 90, 55);
+            
+            // 键盘
+            ctx.fillStyle = '#333';
+            ctx.fillRect(x + 60, y + 115, 80, 20);
+            
+            // 台灯
+            ctx.fillStyle = '#444';
+            ctx.fillRect(x + w - 50, y + 60, 10, 40);
+            ctx.fillStyle = '#ffdd44';
             ctx.beginPath();
-            ctx.ellipse(x + 40, y + 30, 40, 25, 0, 0, Math.PI * 2);
+            ctx.arc(x + w - 45, y + 55, 15, 0, Math.PI);
             ctx.fill();
-            ctx.fillStyle = '#3a2a1a';
-            ctx.fillRect(x + 20, y + 50, 10, 30);
-            ctx.fillRect(x + 50, y + 50, 10, 30);
-            ctx.fillStyle = '#fff';
-            ctx.fillRect(x + 25, y + 10, 15, 12);
-            ctx.fillStyle = '#6a4a2a';
-            ctx.fillRect(x + 27, y + 12, 11, 8);
-        }
-        
-        drawCoffeeBags(ctx, x, y) {
-            const colors = ['#8b6914', '#6b4934', '#5a3924'];
-            for (let i = 0; i < 3; i++) {
-                ctx.fillStyle = colors[i];
-                ctx.fillRect(x + i * 30, y - 40, 35, 50);
-                ctx.fillStyle = '#4a3010';
-                ctx.fillRect(x + i * 30 + 10, y - 50, 15, 15);
-            }
-        }
-        
-        drawWallDecor(ctx, x, y) {
-            ctx.fillStyle = '#2a1a0a';
-            ctx.fillRect(x, y, 100, 80);
-            ctx.strokeStyle = '#c9a227';
-            ctx.lineWidth = 4;
-            ctx.strokeRect(x, y, 100, 80);
-            ctx.fillStyle = '#8b4513';
-            ctx.beginPath();
-            ctx.arc(x + 50, y + 45, 20, 0, Math.PI);
-            ctx.fill();
-            ctx.fillStyle = '#d4a574';
-            ctx.fillRect(x + 65, y + 40, 10, 8);
         }
         
         drawSofa(ctx, x, y, w, h) {

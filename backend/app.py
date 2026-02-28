@@ -45,6 +45,33 @@ if not os.path.exists(STATE_FILE):
 def index():
     return send_from_directory(FRONTEND_DIR, "index.html")
 
+@app.route("/lab")
+def lab():
+    """知识胶囊实验室Dashboard"""
+    return send_from_directory(FRONTEND_DIR, "lab_dashboard.html")
+
+@app.route("/gallery")
+def gallery():
+    """图片展厅"""
+    return send_from_directory(FRONTEND_DIR, "gallery.html")
+
+@app.route("/warehouse")
+def warehouse():
+    """知识胶囊仓库"""
+    return send_from_directory(FRONTEND_DIR, "warehouse.html")
+
+@app.route("/api/capsules")
+def get_capsules():
+    """从Capsule服务获取胶囊数据"""
+    import requests
+    try:
+        res = requests.get("http://127.0.0.1:8005/capsules", timeout=5)
+        if res.status_code == 200:
+            return res.json()
+    except:
+        pass
+    return jsonify({"capsules": [], "error": "无法连接胶囊服务"})
+
 @app.route("/status")
 def get_status():
     return jsonify(load_state())

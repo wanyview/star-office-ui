@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>☕ TIER咖啡知识沙龙 - 展厅</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: linear-gradient(135deg, #3d2817 0%, #5a3d2b 100%);
+            min-height: 100vh;
+            font-family: 'Noto Sans SC', sans-serif;
+            padding: 20px;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        
+        .header {
+            text-align: center;
+            padding: 30px;
+            color: #fff;
+        }
+        .header h1 {
+            font-size: 2em;
+            text-shadow: 0 0 20px rgba(255, 200, 100, 0.5);
+        }
+        
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            padding: 20px;
+        }
+        
+        .frame {
+            background: #2a1810;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+        
+        .frame img {
+            width: 100%;
+            border-radius: 4px;
+            display: block;
+        }
+        
+        .frame .caption {
+            color: #ccc;
+            text-align: center;
+            padding: 15px;
+            font-size: 1.1em;
+        }
+        
+        .nav {
+            text-align: center;
+            padding: 30px;
+        }
+        .nav a {
+            display: inline-block;
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            color: #fff;
+            padding: 12px 30px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: bold;
+            margin: 10px;
+        }
+        .nav a:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(255,107,53,0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🖼️ KAI 知识胶囊实验室</h1>
+            <p style="color:#aaa;margin-top:10px;">—— 展厅 ——</p>
+        </div>
+        
+        <div class="gallery">
+            <div class="frame">
+                <img src="/images/collision.png" alt="碰撞实验">
+                <div class="caption">🧪 知识胶囊碰撞实验</div>
+            </div>
+            <div class="frame">
+                <img src="/images/cafe.png" alt="咖啡店">
+                <div class="caption">☕ TIER咖啡知识沙龙</div>
+            </div>
+            <div class="frame">
+                <img src="/images/dashboard.png" alt="仪表盘">
+                <div class="caption">📊 实验室状态面板</div>
+            </div>
+        </div>
+        
+        <div class="nav">
+            <a href="/">🏠 返回咖啡店</a>
+            <a href="/lab">📊 实验室Dashboard</a>
+        </div>
+    </div>
+</body>
+</html>

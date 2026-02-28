@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>知识胶囊仓库</title>
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; background: #1a1a2e; color: #fff; }
+        h1 { text-align: center; color: #00d4ff; }
+        .capsule { background: #16213e; padding: 15px; margin: 10px 0; border-radius: 8px; border: 1px solid #0f3460; }
+        .capsule h3 { margin: 0 0 10px 0; color: #e94560; }
+        .tags { margin-top: 10px; }
+        .tag { display: inline-block; background: #0f3460; padding: 3px 10px; border-radius: 15px; margin-right: 5px; font-size: 12px; }
+        .meta { color: #888; font-size: 12px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <h1>💊 知识胶囊仓库</h1>
+    <div id="list">加载中...</div>
+    <script>
+    fetch('/capsules')
+        .then(r=>r.json())
+        .then(d=>{
+            const list = document.getElementById('list');
+            list.innerHTML = d.capsules.map(c=>`
+                <div class="capsule">
+                    <h3>${c.title}</h3>
+                    <p>${c.content.substring(0,100)}...</p>
+                    <div class="tags">${(c.tags||[]).map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+                    <div class="meta">${c.domain} | ${c.author}</div>
+                </div>
+            `).join('');
+        });
+    </script>
+</body>
+</html>
