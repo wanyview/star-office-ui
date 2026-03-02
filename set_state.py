@@ -1,44 +1,59 @@
 #!/usr/bin/env python3
-"""
-状态更新脚本
-用法: python set_state.py <state> [detail]
-"""
+"""Star Office UI 状态更新工具"""
+
+import requests
 import json
-import os
 import sys
-from datetime import datetime
+import os
 
-STATE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "state.json")
+STATE_FILE = "/Users/wanyview/clawd/star-office-ui/state.json"
+API_URL = "http://127.0.0.1:18791"
 
-VALID_STATES = ["idle", "writing", "researching", "executing", "syncing", "error"]
+def get_status():
+    """获取当前状态"""
+    resp = requests.get(f"{API_URL}/status")
+    return resp.json()
 
-def load_state():
-    if os.path.exists(STATE_FILE):
-        try:
-            with open(STATE_FILE, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except Exception:
-            pass
-    return {"state": "idle", "detail": "等待任务中...", "progress": 0, "updated_at": datetime.now().isoformat()}
-
-def save_state(state):
+def set_state(state, detail="", progress=0):
+    """设置状态"""
+    data = {
+        "state": state,
+        "detail": detail,
+        "progress": progress
+    }
     with open(STATE_FILE, "w", encoding="utf-8") as f:
-        json.dump(state, f, ensure_ascii=False, indent=2)
+        json.dump(data, f, ensure_ascii=False, indent=2)
+    print(f"✅ 状态已更新: {state} - {detail}")
+
+def main():
+    if len(sys.argv) < 2:
+        # 显示当前状态
+        status = get_status()
+        print(f"当前状态: {status.get('state', 'unknown')}")
+        print(f"详情: {status.get('detail', '')}")
+        print(f"进度: {status.get('progress', 0)}%")
+        return
+    
+    state = sys.argv[1]
+    detail = " ".join(sys.argv[2:]) if len(sys.argv) > 2 else ""
+    
+    # 状态映射
+    state_map = {
+        "idle": "idle",
+        "working": "working",
+        "writing": "writing",
+        "researching": "researching",
+        "executing": "executing",
+        "syncing": "syncing",
+        "error": "error",
+        "break": "break"
+    }
+    
+    if state in state_map:
+        set_state(state_map[state], detail)
+    else:
+        print(f"未知状态: {state}")
+        print("可用状态: idle, working, writing, researching, executing, syncing, error, break")
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("用法: python set_state.py <state> [detail]")
-        print(f"有效状态: {', '.join(VALID_STATES)}")
-        sys.exit(1)
-    
-    s = sys.argv[1]
-    if s not in VALID_STATES:
-        print(f"有效状态: {', '.join(VALID_STATES)}")
-        sys.exit(1)
-    
-    state = load_state()
-    state["state"] = s
-    state["detail"] = sys.argv[2] if len(sys.argv) > 2 else ""
-    state["updated_at"] = datetime.now().isoformat()
-    save_state(state)
-    print(f"状态已更新: {s} - {state['detail']}")
+    main()

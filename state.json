@@ -1,6 +1,5 @@
 {
-  "state": "idle",
-  "detail": "休息中...",
-  "progress": 0,
-  "updated_at": "2026-02-27T05:30:30.464496"
+  "state": "researching",
+  "detail": "集成 Star Office UI",
+  "progress": 0
 }
