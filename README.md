@@ -1,64 +1,46 @@
-# Star Office UI
+<img src="./static/logo.png" alt="Star Office UI Logo" width="200"/>
 
-> 为 AI 助手创建的"像素办公室"可视化界面 🏢
+[![GitHub Stars](https://img.shields.io/github/stars/wanyview/star-office-ui?style=flat-square&color=DAA520)](https://github.com/wanyview/star-office-ui/stargazers)
+[![GitHub Forks](https://img.shields.io/github/forks/wanyview/star-office-ui?style=flat-square)](https://github.com/wanyview/star-office-ui/network)
+[![Python](https://img.shields.io/badge/Python-3.9+-blue?style=flat-square&logo=python)](https://www.python.org/)
 
-## 效果预览
+> AI智能办公室 - 团队协作与资产管理
 
-- 俯视像素办公室背景
-- 像素小人代表助手：根据 `state` 在不同区域移动
-- 眨眼/气泡/打字机等动态效果
-- 手机可通过 Cloudflare Tunnel 公网访问
+Star Office UI是AI时代的智能办公室平台，支持多Agent加入、状态可视化、移动端查看与公网访问。为TIER咖啡知识沙龙提供数字化运营支持。
 
-## 快速开始
+---
 
-### 1. 安装依赖
+## ✨ 特性
+
+- **多Agent协作**: 支持多个AI Agent同时在线
+- **状态可视化**: 实时展示团队与资产状态
+- **移动端适配**: 支持手机/平板访问
+- **公网访问**: 随时随地查看与操作
+
+---
+
+## 🚀 快速开始
 
 ```bash
+git clone https://github.com/wanyview/star-office-ui.git
 cd star-office-ui/backend
-pip install flask
-```
-
-### 2. 启动后端
-
-```bash
+pip install -r requirements.txt
 python app.py
 ```
 
-服务将在 http://0.0.0.0:18791 启动
+服务启动: http://localhost:18797
 
-### 3. 公网访问（可选）
+---
 
-```bash
-# 下载 cloudflared
-brew install cloudflared
+## 📖 功能
 
-# 启动 quick tunnel
-cloudflared tunnel --url http://127.0.0.1:18791
-```
+| 功能 | 描述 |
+|------|------|
+| 房间管理 | 创建/加入协作房间 |
+| 资产管理 | 可视化展示资产状态 |
+| 状态监控 | 实时监控服务状态 |
+| 移动端 | 支持手机访问 |
 
-## 状态更新
+---
 
-```bash
-# 更新状态
-python set_state.py writing "正在写报告"
-
-# 可用状态
-idle, writing, researching, executing, syncing, error
-```
-
-## 状态说明
-
-| 状态 | 区域 | 说明 |
-|------|------|------|
-| idle | 休息区 | 等待任务 |
-| writing | 办公桌 | 写作中 |
-| researching | 办公桌 | 研究中 |
-| executing | 办公桌 | 执行中 |
-| syncing | 休息区 | 同步中 |
-| error | 休息区 | 出错 |
-
-## API
-
-- `GET /` - 前端页面
-- `GET /status` - 获取当前状态
-- `GET /health` - 健康检查
+*Built with ❤️ by KAI*
